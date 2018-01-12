@@ -1,0 +1,81 @@
+/// Fonction de distance pour une sphère. 
+float sphereDF(in vec2 pos, in vec2 center, in float radius)
+{
+    float l = length(center - pos) - radius ;
+    return l;
+}
+
+/// Fonction de distance pour un cube 
+/// voir http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+float boxDF(in vec2 pos, in vec2 center, in vec2 dim, in float r)
+{
+    /// Ajoutez ici le code pour faire une boite 
+    return pos.y ;
+} 
+
+float union1(float c1, float c2){
+    return min(c1,c2);
+}
+
+float difference(float c1, float c2){
+    return max(-c1,c2);
+}
+
+float intersection(float c1, float c2){
+    return max(c1,c2);
+}
+
+vec4 renderImplicitSurface2D(float d, float isovalue, float scale, float linespace)
+{
+    /// Background color, rescale the color to avoid to dark image
+    float dd = abs((scale*d)) ;
+    
+    /// Compute when we need to draw a line. 
+    float pd = abs(d);
+    float dfact = mod(pd, linespace+0.05)  ;
+    dfact = abs(dfact-linespace) ;
+    float line = 1.0 ; 
+    if( dfact < 0.01 )
+    {
+    	line = abs(dfact)/ 0.01;
+    }
+    /// Generate the field color blended with the line
+    vec4 fragColor = line * dd  * vec4(0.9,0.9,0.7,1.0); 
+    
+    /// Render the implicit surface in red. 
+    if( d > isovalue-0.005 && d < isovalue+0.005 )
+    {
+        float dd = (abs(d)-isovalue) / 0.005   ; 
+        fragColor = (1.0-dd) * vec4(1.0,0.3,0.0,1.0) + dd * fragColor;
+    }
+    return fragColor ; 
+}
+
+float distanceFieldAt(in vec2 correctPos)
+{    
+    /// Récupération des fonctions de distances 
+    float s1 = sphereDF(correctPos, vec2(-0.1,0.0), 0.2) ; 
+    
+    /// Combinaison des fonctions de distances. 
+    float s2 = sphereDF(vec2(iMouse.x,iMouse.y), vec2(-0.1,0.0), 0.2);
+    float s = union1(s1,s2);
+    return s ;
+}
+
+/// cette fonction est appelée automatiquement pour chaque pixel de l'image. 
+/// input: fragCoord est la position en pixel du pixel 
+/// output: fragColor est la couleur de sortie du pixel
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    float rescale=2.0;
+    /// Normalisation des coordonnées du fragment pour travailler dans 
+    /// un interval [-1, 1]
+    float aspectRatio = iResolution.x / iResolution.y ; 
+    vec2 posNormalized = (fragCoord / iResolution.xy) - 0.5 ;
+    vec2 correctPos = vec2(posNormalized.x, posNormalized.y/aspectRatio) * rescale ;    
+    vec2 mousePos = ( iMouse.xy / iResolution.xy ) - 0.5 ;
+    mousePos = vec2(mousePos.x, mousePos.y/aspectRatio) * rescale ; 
+    
+    float d = distanceFieldAt(correctPos);
+    fragColor = renderImplicitSurface2D(d, -0.0, 5.0, 0.05) ; 
+}

@@ -1,0 +1,6 @@
+tp compliqué pour rentrer dans le code. 
+L'utilisation de la kinect se comprend vite mais il est plus compliqué de comprendre la gestion des profondeurs.
+J'ai commencé par chercher dans le depth_mid les pixels d'une certaine couleur (~= rouge semble etre une bonne distance).
+ensuite on fait la moyenne de tout ces points la et on colore une zone autour de la moyenne. 
+
+Ce que j'ai fait ne marche pas vraiment mais je pensais que l'idée serait bonne. Avec un peu de temps supplémentaire je pense qu'il aurait été possible d'obtenir un résultat.
